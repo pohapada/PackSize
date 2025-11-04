@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4a6fa5">
+    <meta name="description" content="برنامه محاسبه ابعاد کارتن - قابل نصب">
     <title>محاسبه ابعاد کارتن</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -42,6 +47,21 @@
             background-color: white;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
+            position: relative;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            background-color: var(--primary-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
         }
         
         h1 {
@@ -54,6 +74,29 @@
             opacity: 0.8;
         }
         
+        .install-prompt {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        
+        .install-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .install-btn:hover {
+            background-color: #ff6b4a;
+        }
+        
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -63,6 +106,12 @@
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
+            }
+            
+            .install-prompt {
+                position: static;
+                margin-bottom: 15px;
+                text-align: center;
             }
         }
         
@@ -238,11 +287,47 @@
         .dimension-name {
             font-weight: 600;
         }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            display: block;
+            animation: fadeInOut 3s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
+            <div class="install-prompt">
+                <button class="install-btn" id="installButton">
+                    <span>نصب برنامه</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="logo">ک</div>
             <h1>محاسبه ابعاد کارتن</h1>
             <p class="description">ابعاد مختلف کارتن را بر اساس طول، عرض و ارتفاع محاسبه کنید</p>
         </header>
@@ -319,6 +404,10 @@
                     </div>
                 </div>
             </section>
+        </div>
+        
+        <div class="notification" id="notification">
+            تنظیمات با موفقیت ذخیره شد!
         </div>
     </div>
 
@@ -469,6 +558,45 @@
             `;
         }
 
+        // نمایش اعلان
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // مدیریت نصب PWA
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // جلوگیری از نمایش پیش‌فرض اعلان نصب
+            e.preventDefault();
+            // ذخیره event برای استفاده بعدی
+            deferredPrompt = e;
+            // نمایش دکمه نصب
+            installButton.style.display = 'flex';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // نمایش اعلان نصب
+                deferredPrompt.prompt();
+                // صبر برای انتخاب کاربر
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('کاربر برنامه را نصب کرد');
+                    installButton.style.display = 'none';
+                }
+                // پاک کردن event
+                deferredPrompt = null;
+            }
+        });
+
         // رویدادها
         document.getElementById('calculateBtn').addEventListener('click', calculateAllDimensions);
         
@@ -498,7 +626,7 @@
             };
             
             saveFormulas();
-            alert("تنظیمات با موفقیت ذخیره شد.");
+            showNotification("تنظیمات با موفقیت ذخیره شد.");
         });
         
         document.getElementById('resetSettingsBtn').addEventListener('click', function() {
@@ -506,7 +634,7 @@
                 formulas = JSON.parse(JSON.stringify(defaultFormulas));
                 saveFormulas();
                 loadFormulasToInputs();
-                alert("فرمول‌ها با موفقیت بازنشانی شدند.");
+                showNotification("فرمول‌ها با موفقیت بازنشانی شدند.");
             }
         });
 
