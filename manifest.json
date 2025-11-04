@@ -1,0 +1,24 @@
+{
+  "name": "محاسبه ابعاد کارتن",
+  "short_name": "کارتن محاسبه",
+  "description": "برنامه محاسبه ابعاد کارتن",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#4a6fa5",
+  "orientation": "any",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
