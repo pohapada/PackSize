@@ -8,450 +8,295 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="کارتن محاسبه">
-    <title>محاسبه ابعاد کارتن</title>
+    <title>محاسبه ابعاد کارتن — نسخه ارتقا یافته</title>
 
-    <!-- Manifest (مسیر نسبی) -->
     <link rel="manifest" href="manifest.json">
-
-    <!-- Icons (مسیر نسبی) -->
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
 
     <style>
-        :root {
-            --primary-color: #4a6fa5;
-            --secondary-color: #6b8cbc;
-            --accent-color: #ff7e5f;
-            --light-color: #f5f7fa;
-            --dark-color: #2c3e50;
-            --success-color: #2ecc71;
-            --border-radius: 8px;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        /* ---------- Variables ---------- */
+        :root{
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --muted: #6b7280;
+            --primary: #336699; /* main */
+            --primary-2: #4a6fa5; /* accent */
+            --accent: #ff7e5f;
+            --glass: rgba(255,255,255,0.65);
+            --shadow: 0 8px 24px rgba(28,40,60,0.08);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --mono: 'Courier New', monospace;
         }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+        /* ---------- Base ---------- */
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            margin:0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #eef4fb 0%, var(--bg) 100%);
+            color:#12202b;
+            padding:20px;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
         }
-        
-        body {
-            background-color: #f0f2f5;
-            color: var(--dark-color);
-            line-height: 1.6;
-            padding: 20px;
+
+        .container{max-width:1100px;margin:0 auto}
+
+        /* ---------- Header ---------- */
+        header.app-header{
+            display:flex;align-items:center;gap:18px;
+            background: linear-gradient(135deg,var(--card),#f7fbff);
+            padding:18px;border-radius:16px;box-shadow:var(--shadow);
+            margin-bottom:20px;position:relative;overflow:hidden;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+
+        .brand{
+            display:flex;align-items:center;gap:12px
         }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            position: relative;
+
+        .logo{
+            width:72px;height:72px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:34px;color:white;background:linear-gradient(135deg,var(--primary),var(--primary-2));box-shadow:0 6px 18px rgba(74,111,165,0.18)
         }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 15px;
-            background-color: var(--primary-color);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
+
+        .title-wrap h1{margin:0;font-size:20px;letter-spacing:0.2px}
+        .title-wrap p{margin:0;color:var(--muted);font-size:13px}
+
+        /* top-right controls */
+        .top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+        .icon-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+        .icon-btn:focus{outline:2px solid rgba(51,102,153,0.18)}
+
+        .install-btn{display:flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:8px 12px;border-radius:10px;border:0;font-weight:600}
+
+        /* ---------- Layout ---------- */
+        main.grid{
+            display:grid;grid-template-columns: 1fr 420px;gap:20px;align-items:start
         }
-        
-        h1 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-        
-        .description {
-            color: var(--dark-color);
-            opacity: 0.8;
-        }
-        
-        .install-prompt {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
-        
-        .install-btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            display: none;
-        }
-        
-        .install-btn:hover {
-            background-color: #ff6b4a;
-        }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .install-prompt {
-                position: static;
-                margin-bottom: 15px;
-                text-align: center;
-            }
-        }
-        
-        .input-section, .results-section, .settings-section {
-            background-color: white;
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-        }
-        
-        .input-section {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-        
-        input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        
-        input[type="number"]:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-        
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-        
-        button:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .calculate-btn {
-            background-color: var(--accent-color);
-            width: 100%;
-            margin-top: 20px;
-        }
-        
-        .calculate-btn:hover {
-            background-color: #ff6b4a;
-        }
-        
-        .results-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-        
-        .result-card {
-            border: 1px solid #e1e1e1;
-            border-radius: var(--border-radius);
-            padding: 15px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--box-shadow);
-        }
-        
-        .result-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-        }
-        
-        .result-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--dark-color);
-        }
-        
-        .settings-section {
-            grid-column: 1 / -1;
-            margin-top: 20px;
-        }
-        
-        .settings-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 15px;
-            background-color: var(--light-color);
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-        }
-        
-        .settings-content {
-            display: none;
-        }
-        
-        .settings-content.active {
-            display: block;
-        }
-        
-        .formula-group {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #e1e1e1;
-            border-radius: var(--border-radius);
-        }
-        
-        .formula-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-        }
-        
-        .formula-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            margin-bottom: 10px;
-        }
-        
-        .save-settings-btn {
-            background-color: var(--success-color);
-        }
-        
-        .save-settings-btn:hover {
-            background-color: #27ae60;
-        }
-        
-        .reset-btn {
-            background-color: #e74c3c;
-            margin-left: 10px;
-        }
-        
-        .reset-btn:hover {
-            background-color: #c0392b;
-        }
-        
-        .button-group {
-            display: flex;
-            justify-content: flex-end;
-        }
-        
-        .dimension {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        
-        .dimension-name {
-            font-weight: 600;
-        }
-        
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--success-color);
-            color: white;
-            padding: 15px 20px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            display: none;
-            z-index: 1000;
-        }
-        
-        .notification.show {
-            display: block;
-            animation: fadeInOut 3s ease-in-out;
-        }
-        
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(20px); }
-            20% { opacity: 1; transform: translateY(0); }
-            80% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(20px); }
-        }
+        @media(max-width:980px){main.grid{grid-template-columns:1fr} .top-actions{margin-top:10px}}
+
+        /* ---------- Card ---------- */
+        .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+
+        /* ---------- Input area ---------- */
+        .inputs{display:flex;flex-direction:column;gap:12px}
+        label{font-weight:700;font-size:13px;color:#233444;margin-bottom:6px}
+        .row{display:flex;gap:12px}
+        .row .field{flex:1}
+        input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid #e6eef8;font-size:15px}
+        input[type=number]:focus{box-shadow:0 4px 14px rgba(74,111,165,0.06);border-color:var(--primary-2);outline:none}
+
+        .calculate-wrap{display:flex;gap:12px;margin-top:12px}
+        .btn{padding:12px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+        .btn-primary{background:linear-gradient(90deg,var(--primary),var(--primary-2));color:#fff}
+        .btn-ghost{background:transparent;border:1px solid #e6eef8;color:var(--primary-2)}
+
+        /* ---------- Results ---------- */
+        .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+        .result-card{padding:14px;border-radius:12px;border:1px solid #eef6ff;background:linear-gradient(180deg,rgba(255,255,255,0.9),var(--glass));}
+        .result-card h3{margin:0 0 8px 0;color:var(--primary-2)}
+        .dim{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+        .dim .v{font-weight:700}
+        .copy-btn{background:transparent;border:0;cursor:pointer;padding:6px;border-radius:8px}
+
+        /* ---------- Settings modal/drawer ---------- */
+        .overlay{position:fixed;inset:0;background:rgba(8,12,20,0.35);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:60}
+        .overlay.show{display:flex}
+        .drawer{width:100%;max-width:760px;background:var(--card);border-radius:12px;padding:18px;box-shadow:var(--shadow);transform:translateY(36px);opacity:0;transition:all .22s ease}
+        .overlay.show .drawer{transform:translateY(0);opacity:1}
+
+        .settings-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+        .settings-header h2{margin:0}
+
+        .formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        @media(max-width:720px){.formula-grid{grid-template-columns:1fr}}
+
+        textarea.formula{width:100%;min-height:56px;border-radius:10px;border:1px solid #e6eef8;padding:10px;font-family:var(--mono);font-size:13px}
+
+        .settings-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+        /* ---------- small helpers ---------- */
+        .muted{color:var(--muted);font-size:13px}
+        .tag{background:#f0f8ff;padding:6px 8px;border-radius:8px;font-weight:700}
+
+        /* notification */
+        .toast{position:fixed;left:20px;bottom:20px;background:var(--primary-2);color:#fff;padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:80}
+        .toast.show{display:block}
+
+        /* accessible focus */
+        button:focus, input:focus, textarea:focus{outline:2px solid rgba(74,111,165,0.12)}
+
+        /* small responsive tweaks */
+        @media (max-width:420px){.logo{width:56px;height:56px;font-size:28px}.title-wrap h1{font-size:16px}}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="install-prompt">
-                <button class="install-btn" id="installButton" aria-hidden="true">
-                    <span>نصب برنامه</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
+        <header class="app-header">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">📦</div>
+                <div class="title-wrap">
+                    <h1>محاسبه ابعاد کارتن</h1>
+                    <p>سریع — دقیق — قابل نصب (PWA)</p>
+                </div>
+            </div>
+
+            <div class="top-actions">
+                <button id="installButton" class="install-btn" aria-hidden="true">نصب برنامه ⤓</button>
+
+                <!-- gear icon opens settings drawer -->
+                <button id="openSettings" class="icon-btn" title="تنظیمات فرمول‌ها (G)" aria-label="تنظیمات">
+                    <!-- gear SVG -->
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z"></path>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 0 1 2.3 16.9l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09c.7 0 1.29-.44 1.51-1a1.65 1.65 0 0 0-.33-1.82L4.3 4.3A2 2 0 0 1 7.13 1.47l.06.06c.5.5 1.2.72 1.82.33.5-.32 1.1-.5 1.7-.5h.06A2 2 0 0 1 12 1a2 2 0 0 1 .92.28c.6.12 1.3.5 1.7.82l.06.06A2 2 0 0 1 19.7 4.3l-.06.06c-.5.5-.72 1.2-.33 1.82.32.5.5 1.1.5 1.7V9c0 .07 0 .14.01.21.02.43.2.84.5 1.2.39.5.72 1.1.72 1.72z"></path>
                     </svg>
                 </button>
             </div>
-            <div class="logo" aria-hidden="true">📦</div>
-            <h1>محاسبه ابعاد کارتن</h1>
-            <p class="description">ابعاد مختلف کارتن را بر اساس طول، عرض و ارتفاع محاسبه کنید</p>
         </header>
-        
-        <div class="main-content">
-            <section class="input-section">
-                <div class="input-group">
-                    <label for="length">طول (سانتی‌متر)</label>
-                    <input type="number" id="length" placeholder="طول را وارد کنید" min="0" step="0.1">
-                </div>
-                
-                <div class="input-group">
-                    <label for="width">عرض (سانتی‌متر)</label>
-                    <input type="number" id="width" placeholder="عرض را وارد کنید" min="0" step="0.1">
-                </div>
-                
-                <div class="input-group">
-                    <label for="height">ارتفاع (سانتی‌متر)</label>
-                    <input type="number" id="height" placeholder="ارتفاع را وارد کنید" min="0" step="0.1">
-                </div>
-                
-                <button class="calculate-btn" id="calculateBtn">محاسبه ابعاد</button>
-            </section>
-            
-            <section class="results-section">
-                <h2>نتایج محاسبات</h2>
-                <div class="results-grid" id="resultsContainer">
-                    <!-- نتایج در اینجا نمایش داده می‌شوند -->
-                </div>
-            </section>
-            
-            <section class="settings-section">
-                <div class="settings-toggle" id="settingsToggle">
-                    <h2>تنظیمات فرمول‌ها</h2>
-                    <span>▼</span>
-                </div>
-                
-                <div class="settings-content" id="settingsContent">
-                    <div class="formula-group">
-                        <div class="formula-title">کیبوردی</div>
-                        <label for="keyboardWidth">عرض شیت:</label>
-                        <input type="text" id="keyboardWidth" class="formula-input" value="3+طول+(4×ارتفاع)">
-                        <label for="keyboardLength">طول شیت:</label>
-                        <input type="text" id="keyboardLength" class="formula-input" value="2+(2×عرض)+(3×ارتفاع)">
+
+        <main class="grid">
+            <section class="card">
+                <div class="inputs">
+                    <div class="row">
+                        <div class="field">
+                            <label for="length">طول (سانتی‌متر)</label>
+                            <input id="length" type="number" min="0" step="0.1" placeholder="مثال: 25.5">
+                        </div>
+                        <div class="field">
+                            <label for="width">عرض (سانتی‌متر)</label>
+                            <input id="width" type="number" min="0" step="0.1" placeholder="مثال: 18">
+                        </div>
                     </div>
-                    
-                    <div class="formula-group">
-                        <div class="formula-title">کارتن مادر</div>
-                        <label for="motherWidth">عرض شیت:</label>
-                        <input type="text" id="motherWidth" class="formula-input" value="طول+ارتفاع">
-                        <label for="motherLength">طول شیت:</label>
-                        <input type="text" id="motherLength" class="formula-input" value="4+2×(طول+عرض)">
+
+                    <div class="row">
+                        <div class="field">
+                            <label for="height">ارتفاع (سانتی‌متر)</label>
+                            <input id="height" type="number" min="0" step="0.1" placeholder="مثال: 12">
+                        </div>
+                        <div style="width:140px;display:flex;flex-direction:column;justify-content:flex-end;">
+                            <div class="muted" style="font-size:12px;margin-bottom:6px">عملیات سریع</div>
+                            <div style="display:flex;gap:8px">
+                                <button id="calcNow" class="btn btn-primary">محاسبه</button>
+                                <button id="clearBtn" class="btn btn-ghost">پاک کردن</button>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="formula-group">
-                        <div class="formula-title">ته قفلی</div>
-                        <label for="lockBottomWidth">عرض شیت:</label>
-                        <input type="text" id="lockBottomWidth" class="formula-input" value="5+0.5×عرض+ارتفاع+عرض">
-                        <label for="lockBottomLength">طول شیت:</label>
-                        <input type="text" id="lockBottomLength" class="formula-input" value="2×(طول+عرض)+4">
+
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+                        <div class="tag">۴ فرمول ذخیره‌پذیر</div>
+                        <div class="muted">فرمول‌ها در حافظه مرورگر ذخیره می‌شوند.</div>
                     </div>
-                    
-                    <div class="formula-group">
-                        <div class="formula-title">کلافی+پیتزایی</div>
-                        <label for="coilPizzaWidth">عرض شیت:</label>
-                        <input type="text" id="coilPizzaWidth" class="formula-input" value="2+2×ارتفاع+طول">
-                        <label for="coilPizzaLength">طول شیت:</label>
-                        <input type="text" id="coilPizzaLength" class="formula-input" value="4×ارتفاع+2×عرض">
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="save-settings-btn" id="saveSettingsBtn">ذخیره تنظیمات</button>
-                        <button class="reset-btn" id="resetSettingsBtn">بازنشانی فرمول‌ها</button>
+
+                    <div style="margin-top:14px">
+                        <label class="muted">خروجی سریع</label>
+                        <div id="quickSummary" class="card" style="margin-top:8px;padding:12px;background:#fbfdff;border-radius:10px;border:1px solid #eef6ff;">
+                            <div class="muted">نتایج پس از کلیک روی «محاسبه» اینجا نمایش داده می‌شود.</div>
+                        </div>
                     </div>
                 </div>
             </section>
-        </div>
-        
-        <div class="notification" id="notification">
-            تنظیمات با موفقیت ذخیره شد!
-        </div>
+
+            <aside class="card">
+                <h3 style="margin-top:0">نتایج محاسبات</h3>
+                <div id="resultsGrid" class="results">
+                    <!-- کارت‌های نتیجه اینجا تولید می‌شوند -->
+                </div>
+
+                <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+                    <button id="copyAll" class="btn btn-ghost">کپی همه</button>
+                    <button id="exportCsv" class="btn btn-ghost">خروجی CSV</button>
+                </div>
+            </aside>
+
+            <!-- settings drawer (overlay) -->
+            <div id="overlay" class="overlay" role="dialog" aria-hidden="true">
+                <div class="drawer" role="document">
+                    <div class="settings-header">
+                        <h2>منوی تنظیمات فرمول‌ها</h2>
+                        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                            <button id="closeSettings" class="icon-btn" title="بستن">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="muted" style="margin-bottom:8px">در این بخش می‌توانید فرمول‌ها را ویرایش، تست و ذخیره کنید. تمام فرمول‌ها فارسی هستند و متغیرها: طول، عرض، ارتفاع</div>
+
+                    <div class="formula-grid">
+                        <div>
+                            <label>کیبوردی — عرض شیت</label>
+                            <textarea id="keyboardWidth" class="formula">3+طول+(4×ارتفاع)</textarea>
+                        </div>
+                        <div>
+                            <label>کیبوردی — طول شیت</label>
+                            <textarea id="keyboardLength" class="formula">2+(2×عرض)+(3×ارتفاع)</textarea>
+                        </div>
+
+                        <div>
+                            <label>کارتن مادر — عرض شیت</label>
+                            <textarea id="motherWidth" class="formula">طول+ارتفاع</textarea>
+                        </div>
+                        <div>
+                            <label>کارتن مادر — طول شیت</label>
+                            <textarea id="motherLength" class="formula">4+2×(طول+عرض)</textarea>
+                        </div>
+
+                        <div>
+                            <label>ته قفلی — عرض شیت</label>
+                            <textarea id="lockBottomWidth" class="formula">5+0.5×عرض+ارتفاع+عرض</textarea>
+                        </div>
+                        <div>
+                            <label>ته قفلی — طول شیت</label>
+                            <textarea id="lockBottomLength" class="formula">2×(طول+عرض)+4</textarea>
+                        </div>
+
+                        <div>
+                            <label>کلافی+پیتزایی — عرض شیت</label>
+                            <textarea id="coilPizzaWidth" class="formula">2+2×ارتفاع+طول</textarea>
+                        </div>
+                        <div>
+                            <label>کلافی+پیتزایی — طول شیت</label>
+                            <textarea id="coilPizzaLength" class="formula">4×ارتفاع+2×عرض</textarea>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;margin-top:12px;align-items:center;justify-content:space-between">
+                        <div class="muted">می‌توانید از علامت × برای ضرب استفاده کنید؛ ارقام فارسی نیز پشتیبانی می‌شوند.</div>
+                        <div class="settings-actions">
+                            <button id="resetSettingsBtn" class="btn" style="background:var(--danger);color:#fff">بازنشانی</button>
+                            <button id="saveSettingsBtn" class="btn" style="background:var(--success);color:#fff">ذخیره تنظیمات</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </div>
 
     <script>
-        // فرمول‌های پیش‌فرض
+        // ---------- Default formulas (same as original, preserved) ----------
         const defaultFormulas = {
-            keyboard: {
-                width: "3+طول+(4×ارتفاع)",
-                length: "2+(2×عرض)+(3×ارتفاع)"
-            },
-            mother: {
-                width: "طول+ارتفاع",
-                length: "4+2×(طول+عرض)"
-            },
-            lockBottom: {
-                width: "5+0.5×عرض+ارتفاع+عرض",
-                length: "2×(طول+عرض)+4"
-            },
-            coilPizza: {
-                width: "2+2×ارتفاع+طول",
-                length: "4×ارتفاع+2×عرض"
-            }
+            keyboard: { width: "3+طول+(4×ارتفاع)", length: "2+(2×عرض)+(3×ارتفاع)" },
+            mother: { width: "طول+ارتفاع", length: "4+2×(طول+عرض)" },
+            lockBottom: { width: "5+0.5×عرض+ارتفاع+عرض", length: "2×(طول+عرض)+4" },
+            coilPizza: { width: "2+2×ارتفاع+طول", length: "4×ارتفاع+2×عرض" }
         };
 
-        // بارگذاری فرمول‌ها از localStorage یا استفاده از پیش‌فرض
+        // load/save
         let formulas = JSON.parse(localStorage.getItem('cartonFormulas')) || defaultFormulas;
 
-        // ذخیره فرمول‌ها در localStorage
-        function saveFormulas() {
+        function saveFormulasToStorage(){
             localStorage.setItem('cartonFormulas', JSON.stringify(formulas));
+            showToast('تنظیمات ذخیره شد');
         }
 
-        // بارگذاری فرمول‌ها در فرم‌های ورودی
-        function loadFormulasToInputs() {
+        function loadFormulasToInputs(){
             document.getElementById('keyboardWidth').value = formulas.keyboard.width;
             document.getElementById('keyboardLength').value = formulas.keyboard.length;
             document.getElementById('motherWidth').value = formulas.mother.width;
@@ -462,266 +307,218 @@
             document.getElementById('coilPizzaLength').value = formulas.coilPizza.length;
         }
 
-        // ایمن‌سازی: اجازه فقط ارقام، اپراتورها و پرانتزها در عبارت نهایی
-        function isSafeMathExpression(expr) {
-            // فقط این کاراکترها مجازند: 0-9 + - * / . ( ) و فاصله
+        // safety check (only after variables replaced) - allow digits, operators, parentheses and decimal point
+        function isSafeMathExpression(expr){
             return /^[0-9+\-*/().\s]+$/.test(expr);
         }
 
-        // محاسبه مقدار بر اساس فرمول (با جایگزینی متغیرها و بررسی ایمنی)
-        function calculateFormula(formula, length, width, height) {
-            // جایگزینی متغیرها (مقادیر عددی به رشته)
+        // evaluate formula with variable substitution and conversions
+        function calculateFormula(formula, length, width, height){
             let expression = String(formula)
                 .replace(/طول/g, String(length))
                 .replace(/عرض/g, String(width))
                 .replace(/ارتفاع/g, String(height))
-                // تبدیل کاراکتر ضرب فارسی/عمومی به *
                 .replace(/×/g, '*')
                 .replace(/×/g, '*')
-                // حذف کاراکترهای فاصلهٔ غیرمعمول
                 .replace(/\u200C/g, '')
                 .trim();
 
-            // تبدیل ارقام فارسی (۰-۹) به لاتین در صورت وجود
-            expression = expression.replace(/[\u06F0-\u06F9]/g, function(d) {
-                return String(d.charCodeAt(0) - 0x06F0);
-            });
+            // persian digits to latin
+            expression = expression.replace(/[\u06F0-\u06F9]/g, function(d){return String(d.charCodeAt(0) - 0x06F0)});
 
-            // بررسی ایمنی عبارت
-            if (!isSafeMathExpression(expression)) {
-                console.error("عبارت ریاضی معتبر نیست یا شامل کاراکتر غیرمجاز است:", expression);
-                return "خطا";
+            if(!isSafeMathExpression(expression)){
+                console.error('غیرمجاز:', expression);
+                return 'خطا';
             }
 
-            try {
-                // ارزیابی امن‌تر: از Function استفاده می‌کنیم به جای eval()
+            try{
                 const result = Function('"use strict"; return (' + expression + ')')();
-                if (typeof result === 'number' && isFinite(result)) {
-                    return Number(result).toFixed(2);
-                } else {
-                    return "خطا";
-                }
-            } catch (error) {
-                console.error("خطا در محاسبه فرمول:", error, expression);
-                return "خطا";
+                if(typeof result === 'number' && isFinite(result)) return Number(result).toFixed(2);
+                return 'خطا';
+            }catch(e){
+                console.error('eval error', e, expression);
+                return 'خطا';
             }
         }
 
-        // محاسبه تمام ابعاد
-        function calculateAllDimensions() {
-            const length = parseFloat(document.getElementById('length').value) || 0;
-            const width = parseFloat(document.getElementById('width').value) || 0;
-            const height = parseFloat(document.getElementById('height').value) || 0;
-            
-            if (length <= 0 || width <= 0 || height <= 0) {
-                alert("لطفاً مقادیر معتبر برای طول، عرض و ارتفاع وارد کنید.");
+        // calculate all
+        function calculateAll(){
+            const L = parseFloat(document.getElementById('length').value) || 0;
+            const W = parseFloat(document.getElementById('width').value) || 0;
+            const H = parseFloat(document.getElementById('height').value) || 0;
+
+            if(L <= 0 || W <= 0 || H <= 0){
+                alert('لطفاً مقادیر معتبر برای طول، عرض و ارتفاع وارد کنید.');
                 return;
             }
-            
+
             const results = {
-                keyboard: {
-                    width: calculateFormula(formulas.keyboard.width, length, width, height),
-                    length: calculateFormula(formulas.keyboard.length, length, width, height)
-                },
-                mother: {
-                    width: calculateFormula(formulas.mother.width, length, width, height),
-                    length: calculateFormula(formulas.mother.length, length, width, height)
-                },
-                lockBottom: {
-                    width: calculateFormula(formulas.lockBottom.width, length, width, height),
-                    length: calculateFormula(formulas.lockBottom.length, length, width, height)
-                },
-                coilPizza: {
-                    width: calculateFormula(formulas.coilPizza.width, length, width, height),
-                    length: calculateFormula(formulas.coilPizza.length, length, width, height)
-                }
+                keyboard: { width: calculateFormula(formulas.keyboard.width, L, W, H), length: calculateFormula(formulas.keyboard.length, L, W, H) },
+                mother: { width: calculateFormula(formulas.mother.width, L, W, H), length: calculateFormula(formulas.mother.length, L, W, H) },
+                lockBottom: { width: calculateFormula(formulas.lockBottom.width, L, W, H), length: calculateFormula(formulas.lockBottom.length, L, W, H) },
+                coilPizza: { width: calculateFormula(formulas.coilPizza.width, L, W, H), length: calculateFormula(formulas.coilPizza.length, L, W, H) }
             };
-            
-            displayResults(results);
+
+            renderResults(results);
+            renderQuickSummary(results);
         }
 
-        // نمایش نتایج
-        function displayResults(results) {
-            const resultsContainer = document.getElementById('resultsContainer');
-            
-            resultsContainer.innerHTML = `
-                <div class="result-card">
-                    <div class="result-title">کیبوردی</div>
-                    <div class="dimension">
-                        <span class="dimension-name">عرض شیت:</span>
-                        <span class="result-value">${results.keyboard.width} سانتی‌متر</span>
+        function renderResults(res){
+            const container = document.getElementById('resultsGrid');
+            container.innerHTML = '';
+
+            const map = [
+                {key:'keyboard', title:'کیبوردی'},
+                {key:'mother', title:'کارتن مادر'},
+                {key:'lockBottom', title:'ته قفلی'},
+                {key:'coilPizza', title:'کلافی + پیتزایی'}
+            ];
+
+            map.forEach(m =>{
+                const r = res[m.key];
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <h3>${m.title}</h3>
+                    <div class="dim"><div class="muted">عرض شیت</div><div class="v">${r.width} سانتی‌متر</div></div>
+                    <div class="dim"><div class="muted">طول شیت</div><div class="v">${r.length} سانتی‌متر</div></div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+                        <button class="copy-btn" data-val="${r.width} سانتی‌متر" title="کپی">کپی عرض</button>
+                        <button class="copy-btn" data-val="${r.length} سانتی‌متر" title="کپی">کپی طول</button>
                     </div>
-                    <div class="dimension">
-                        <span class="dimension-name">طول شیت:</span>
-                        <span class="result-value">${results.keyboard.length} سانتی‌متر</span>
-                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // hook copy buttons
+            container.querySelectorAll('.copy-btn').forEach(b=>b.addEventListener('click', e=>{
+                const v = e.currentTarget.getAttribute('data-val');
+                navigator.clipboard.writeText(v).then(()=>showToast('کپی شد: '+v));
+            }));
+        }
+
+        function renderQuickSummary(res){
+            const el = document.getElementById('quickSummary');
+            el.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div class="muted">کیبوردی — عرض × طول</div>
+                    <div><strong>${res.keyboard.width} × ${res.keyboard.length}</strong></div>
                 </div>
-                
-                <div class="result-card">
-                    <div class="result-title">کارتن مادر</div>
-                    <div class="dimension">
-                        <span class="dimension-name">عرض شیت:</span>
-                        <span class="result-value">${results.mother.width} سانتی‌متر</span>
-                    </div>
-                    <div class="dimension">
-                        <span class="dimension-name">طول شیت:</span>
-                        <span class="result-value">${results.mother.length} سانتی‌متر</span>
-                    </div>
-                </div>
-                
-                <div class="result-card">
-                    <div class="result-title">ته قفلی</div>
-                    <div class="dimension">
-                        <span class="dimension-name">عرض شیت:</span>
-                        <span class="result-value">${results.lockBottom.width} سانتی‌متر</span>
-                    </div>
-                    <div class="dimension">
-                        <span class="dimension-name">طول شیت:</span>
-                        <span class="result-value">${results.lockBottom.length} سانتی‌متر</span>
-                    </div>
-                </div>
-                
-                <div class="result-card">
-                    <div class="result-title">کلافی+پیتزایی</div>
-                    <div class="dimension">
-                        <span class="dimension-name">عرض شیت:</span>
-                        <span class="result-value">${results.coilPizza.width} سانتی‌متر</span>
-                    </div>
-                    <div class="dimension">
-                        <span class="dimension-name">طول شیت:</span>
-                        <span class="result-value">${results.coilPizza.length} سانتی‌متر</span>
-                    </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+                    <div class="muted">کارتن مادر</div>
+                    <div><strong>${res.mother.width} × ${res.mother.length}</strong></div>
                 </div>
             `;
         }
 
-        // نمایش اعلان
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+        // toast
+        function showToast(msg){
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(()=>t.classList.remove('show'),2500);
         }
 
-        // مدیریت نصب PWA (یک listener واحد)
+        // ---------- settings drawer logic ----------
+        const overlay = document.getElementById('overlay');
+        const openSettingsBtn = document.getElementById('openSettings');
+        const closeSettingsBtn = document.getElementById('closeSettings');
+
+        function openSettings(){
+            overlay.classList.add('show');
+            overlay.setAttribute('aria-hidden','false');
+            // load current formulas into inputs
+            loadFormulasToInputs();
+        }
+        function closeSettings(){
+            overlay.classList.remove('show');
+            overlay.setAttribute('aria-hidden','true');
+        }
+
+        openSettingsBtn.addEventListener('click', openSettings);
+        closeSettingsBtn.addEventListener('click', closeSettings);
+        overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeSettings(); });
+
+        // Save/Reset
+        document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+            formulas = {
+                keyboard: { width: document.getElementById('keyboardWidth').value, length: document.getElementById('keyboardLength').value },
+                mother: { width: document.getElementById('motherWidth').value, length: document.getElementById('motherLength').value },
+                lockBottom: { width: document.getElementById('lockBottomWidth').value, length: document.getElementById('lockBottomLength').value },
+                coilPizza: { width: document.getElementById('coilPizzaWidth').value, length: document.getElementById('coilPizzaLength').value }
+            };
+            saveFormulasToStorage();
+            closeSettings();
+        });
+
+        document.getElementById('resetSettingsBtn').addEventListener('click', ()=>{
+            if(confirm('آیا از بازنشانی فرمول‌ها به حالت پیش‌فرض مطمئن هستید؟')){
+                formulas = JSON.parse(JSON.stringify(defaultFormulas));
+                saveFormulasToStorage();
+                loadFormulasToInputs();
+                showToast('فرمول‌ها بازنشانی شدند');
+            }
+        });
+
+        // ---------- other UI hooks ----------
+        document.getElementById('calcNow').addEventListener('click', calculateAll);
+        document.getElementById('clearBtn').addEventListener('click', ()=>{
+            document.getElementById('length').value='';document.getElementById('width').value='';document.getElementById('height').value='';
+            document.getElementById('resultsGrid').innerHTML='';document.getElementById('quickSummary').innerHTML='<div class="muted">نتایج پس از کلیک روی «محاسبه» اینجا نمایش داده می‌شود.</div>';
+        });
+
+        document.getElementById('copyAll').addEventListener('click', ()=>{
+            const nodes = document.querySelectorAll('#resultsGrid .result-card');
+            const lines = [];
+            nodes.forEach(n=>{
+                const title = n.querySelector('h3').textContent.trim();
+                const v1 = n.querySelectorAll('.v')[0].textContent.trim();
+                const v2 = n.querySelectorAll('.v')[1].textContent.trim();
+                lines.push(`${title}: عرض ${v1} — طول ${v2}`);
+            });
+            if(lines.length===0){ showToast('نتیجه‌ای برای کپی وجود ندارد'); return }
+            navigator.clipboard.writeText(lines.join('\n')).then(()=>showToast('تمام نتایج کپی شد'));
+        });
+
+        document.getElementById('exportCsv').addEventListener('click', ()=>{
+            const nodes = document.querySelectorAll('#resultsGrid .result-card');
+            if(nodes.length===0){ showToast('نتیجه‌ای برای خروجی وجود ندارد'); return }
+            const rows = ['نوع,عرض,طول'];
+            nodes.forEach(n=>{
+                const title = n.querySelector('h3').textContent.trim();
+                const v1 = n.querySelectorAll('.v')[0].textContent.replace(' سانتی‌متر','').trim();
+                const v2 = n.querySelectorAll('.v')[1].textContent.replace(' سانتی‌متر','').trim();
+                rows.push(`${title},${v1},${v2}`);
+            });
+            const csv = rows.join('\n');
+            const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='carton-results.csv'; a.click(); URL.revokeObjectURL(url);
+        });
+
+        // keyboard shortcut (G) opens settings
+        window.addEventListener('keydown', (e)=>{ if(e.key.toLowerCase()==='g') openSettings(); });
+
+        // ---------- PWA install logic (kept and improved) ----------
         let deferredPrompt = null;
         const installButton = document.getElementById('installButton');
+        if(installButton) installButton.style.display = 'none';
 
-        // ابتدا دکمه را مخفی کنید
-        if (installButton) installButton.style.display = 'none';
-
-        // قبل از رخداد نصب
-        window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('beforeinstallprompt event fired');
-            e.preventDefault(); // جلوگیری از نمایش خودکار
-            deferredPrompt = e;
-            if (installButton) {
-                installButton.style.display = 'flex';
-                installButton.setAttribute('aria-hidden', 'false');
-            }
+        window.addEventListener('beforeinstallprompt', (e)=>{
+            e.preventDefault(); deferredPrompt = e; if(installButton){ installButton.style.display='inline-flex'; }
         });
+        if(installButton){ installButton.addEventListener('click', async ()=>{
+            if(!deferredPrompt) return; deferredPrompt.prompt(); try{ const choice = await deferredPrompt.userChoice; if(choice.outcome==='accepted') installButton.style.display='none'; }catch(e){console.error(e);} finally{deferredPrompt=null}
+        }); }
 
-        // کلیک روی دکمه نصب
-        if (installButton) {
-            installButton.addEventListener('click', async () => {
-                console.log('Install button clicked');
-                if (!deferredPrompt) {
-                    console.log('No deferred prompt available');
-                    return;
-                }
-                deferredPrompt.prompt();
-                try {
-                    const choice = await deferredPrompt.userChoice;
-                    console.log(`User response to the install prompt: ${choice.outcome}`);
-                    if (choice.outcome === 'accepted' && installButton) {
-                        installButton.style.display = 'none';
-                    }
-                } catch (err) {
-                    console.error('Error while prompting install:', err);
-                } finally {
-                    deferredPrompt = null;
-                }
-            });
-        }
-
-        // پس از نصب
-        window.addEventListener('appinstalled', (evt) => {
-            console.log('App was successfully installed');
-            if (installButton) installButton.style.display = 'none';
-            deferredPrompt = null;
-        });
-
-        // اگر از قبل نصب شده یا حالت standalone است دکمه را مخفی کن
-        function hideInstallIfStandalone() {
-            try {
-                if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-                    if (installButton) installButton.style.display = 'none';
-                }
-            } catch (e) {
-                // ignore
-            }
-        }
-
-        // رویدادها
-        document.getElementById('calculateBtn').addEventListener('click', calculateAllDimensions);
-        
-        document.getElementById('settingsToggle').addEventListener('click', function() {
-            const settingsContent = document.getElementById('settingsContent');
-            settingsContent.classList.toggle('active');
-        });
-        
-        document.getElementById('saveSettingsBtn').addEventListener('click', function() {
-            formulas = {
-                keyboard: {
-                    width: document.getElementById('keyboardWidth').value,
-                    length: document.getElementById('keyboardLength').value
-                },
-                mother: {
-                    width: document.getElementById('motherWidth').value,
-                    length: document.getElementById('motherLength').value
-                },
-                lockBottom: {
-                    width: document.getElementById('lockBottomWidth').value,
-                    length: document.getElementById('lockBottomLength').value
-                },
-                coilPizza: {
-                    width: document.getElementById('coilPizzaWidth').value,
-                    length: document.getElementById('coilPizzaLength').value
-                }
-            };
-            
-            saveFormulas();
-            showNotification("تنظیمات با موفقیت ذخیره شد.");
-        });
-        
-        document.getElementById('resetSettingsBtn').addEventListener('click', function() {
-            if (confirm("آیا از بازنشانی فرمول‌ها به حالت پیش‌فرض اطمینان دارید؟")) {
-                formulas = JSON.parse(JSON.stringify(defaultFormulas));
-                saveFormulas();
-                loadFormulasToInputs();
-                showNotification("فرمول‌ها با موفقیت بازنشانی شدند.");
-            }
-        });
-
-        // بارگذاری اولیه فرمول‌ها
-        loadFormulasToInputs();
+        window.addEventListener('appinstalled', ()=>{ if(installButton) installButton.style.display='none'; deferredPrompt=null; showToast('برنامه نصب شد'); });
+        function hideInstallIfStandalone(){ try{ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true) installButton.style.display='none' }catch(e){} }
         hideInstallIfStandalone();
 
-        // ثبت Service Worker (مسیر نسبی)
-        if ('serviceWorker' in navigator) {
-          window.addEventListener('load', function() {
-            navigator.serviceWorker.register('sw.js')
-              .then(function(registration) {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-              })
-              .catch(function(error) {
-                console.log('ServiceWorker registration failed: ', error);
-              });
-          });
-        }
+        // register service worker (relative)
+        if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').then(r=>console.log('SW scope:', r.scope)).catch(err=>console.warn('SW failed', err)); }); }
+
+        // init
+        loadFormulasToInputs();
     </script>
 </body>
 </html>
