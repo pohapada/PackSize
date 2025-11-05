@@ -1,11 +1,11 @@
 // فایل: sw.js
-const CACHE_NAME = 'carton-calculator-v3';
+const CACHE_NAME = 'carton-calculator-v4';
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icons/icon-192x192.png',
-  './icons/icon-512x512.png'
+  '/PackSize/',
+  '/PackSize/index.html',
+  '/PackSize/manifest.json',
+  '/PackSize/icons/icon-192x192.png',
+  '/PackSize/icons/icon-512x512.png'
 ];
 
 self.addEventListener('install', function(event) {
@@ -18,6 +18,7 @@ self.addEventListener('install', function(event) {
       })
       .then(() => {
         console.log('All resources cached successfully');
+        return self.skipWaiting();
       })
       .catch(error => {
         console.log('Cache installation failed:', error);
@@ -26,15 +27,34 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
+  // فقط درخواست‌های GET را کش کنید
+  if (event.request.method !== 'GET') return;
+  
   event.respondWith(
     caches.match(event.request)
       .then(function(response) {
+        // اگر در کش پیدا شد، برگردان
         if (response) {
           return response;
         }
-        return fetch(event.request);
-      }
-    )
+        
+        // در غیر این صورت از شبکه fetch کن
+        return fetch(event.request).then(function(response) {
+          // بررسی که پاسخ معتبر است
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+          
+          // پاسخ را برای استفاده آینده در کش قرار بده
+          var responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then(function(cache) {
+              cache.put(event.request, responseToCache);
+            });
+          
+          return response;
+        });
+      })
   );
 });
 
@@ -50,6 +70,8 @@ self.addEventListener('activate', function(event) {
           }
         })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
 });
