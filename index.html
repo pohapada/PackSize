@@ -5,10 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#4a6fa5">
     <meta name="description" content="برنامه محاسبه ابعاد کارتن - قابل نصب">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="کارتن محاسبه">
     <title>محاسبه ابعاد کارتن</title>
-    <link rel="manifest" href="/PackSize/manifest.json">
-    <link rel="icon" href="/PackSize/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" href="/PackSize/icons/icon-192x192.png">
+
+    <!-- Manifest (مسیر نسبی) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons (مسیر نسبی) -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -319,16 +328,16 @@
     <div class="container">
         <header>
             <div class="install-prompt">
-                <button class="install-btn" id="installButton">
+                <button class="install-btn" id="installButton" aria-hidden="true">
                     <span>نصب برنامه</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
                 </button>
             </div>
-            <div class="logo">📦</div>
+            <div class="logo" aria-hidden="true">📦</div>
             <h1>محاسبه ابعاد کارتن</h1>
             <p class="description">ابعاد مختلف کارتن را بر اساس طول، عرض و ارتفاع محاسبه کنید</p>
         </header>
@@ -453,20 +462,47 @@
             document.getElementById('coilPizzaLength').value = formulas.coilPizza.length;
         }
 
-        // محاسبه مقدار بر اساس فرمول
+        // ایمن‌سازی: اجازه فقط ارقام، اپراتورها و پرانتزها در عبارت نهایی
+        function isSafeMathExpression(expr) {
+            // فقط این کاراکترها مجازند: 0-9 + - * / . ( ) و فاصله
+            return /^[0-9+\-*/().\s]+$/.test(expr);
+        }
+
+        // محاسبه مقدار بر اساس فرمول (با جایگزینی متغیرها و بررسی ایمنی)
         function calculateFormula(formula, length, width, height) {
-            // جایگزینی متغیرها با مقادیر
-            let expression = formula
-                .replace(/طول/g, length)
-                .replace(/عرض/g, width)
-                .replace(/ارتفاع/g, height)
-                .replace(/×/g, '*');
-            
+            // جایگزینی متغیرها (مقادیر عددی به رشته)
+            let expression = String(formula)
+                .replace(/طول/g, String(length))
+                .replace(/عرض/g, String(width))
+                .replace(/ارتفاع/g, String(height))
+                // تبدیل کاراکتر ضرب فارسی/عمومی به *
+                .replace(/×/g, '*')
+                .replace(/×/g, '*')
+                // حذف کاراکترهای فاصلهٔ غیرمعمول
+                .replace(/\u200C/g, '')
+                .trim();
+
+            // تبدیل ارقام فارسی (۰-۹) به لاتین در صورت وجود
+            expression = expression.replace(/[\u06F0-\u06F9]/g, function(d) {
+                return String(d.charCodeAt(0) - 0x06F0);
+            });
+
+            // بررسی ایمنی عبارت
+            if (!isSafeMathExpression(expression)) {
+                console.error("عبارت ریاضی معتبر نیست یا شامل کاراکتر غیرمجاز است:", expression);
+                return "خطا";
+            }
+
             try {
-                // محاسبه نتیجه
-                return eval(expression).toFixed(2);
+                // ارزیابی امن‌تر: از Function استفاده می‌کنیم به جای eval()
+                const result = Function('"use strict"; return (' + expression + ')')();
+                if (typeof result === 'number' && isFinite(result)) {
+                    return Number(result).toFixed(2);
+                } else {
+                    return "خطا";
+                }
             } catch (error) {
-                console.error("خطا در محاسبه فرمول:", error);
+                console.error("خطا در محاسبه فرمول:", error, expression);
                 return "خطا";
             }
         }
@@ -570,50 +606,64 @@
             }, 3000);
         }
 
-        // مدیریت نصب PWA
-        let deferredPrompt;
+        // مدیریت نصب PWA (یک listener واحد)
+        let deferredPrompt = null;
         const installButton = document.getElementById('installButton');
 
         // ابتدا دکمه را مخفی کنید
-        installButton.style.display = 'none';
+        if (installButton) installButton.style.display = 'none';
 
+        // قبل از رخداد نصب
         window.addEventListener('beforeinstallprompt', (e) => {
             console.log('beforeinstallprompt event fired');
-            // جلوگیری از نمایش پیش‌فرض اعلان نصب
-            e.preventDefault();
-            // ذخیره event برای استفاده بعدی
+            e.preventDefault(); // جلوگیری از نمایش خودکار
             deferredPrompt = e;
-            // نمایش دکمه نصب
-            installButton.style.display = 'flex';
-            
-            // نمایش لاگ برای دیباگ
-            console.log('Install button shown');
-        });
-
-        installButton.addEventListener('click', async () => {
-            console.log('Install button clicked');
-            if (deferredPrompt) {
-                // نمایش اعلان نصب
-                deferredPrompt.prompt();
-                // صبر برای انتخاب کاربر
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                if (outcome === 'accepted') {
-                    console.log('کاربر برنامه را نصب کرد');
-                    installButton.style.display = 'none';
-                }
-                // پاک کردن event
-                deferredPrompt = null;
-            } else {
-                console.log('No deferred prompt available');
+            if (installButton) {
+                installButton.style.display = 'flex';
+                installButton.setAttribute('aria-hidden', 'false');
             }
         });
 
+        // کلیک روی دکمه نصب
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                console.log('Install button clicked');
+                if (!deferredPrompt) {
+                    console.log('No deferred prompt available');
+                    return;
+                }
+                deferredPrompt.prompt();
+                try {
+                    const choice = await deferredPrompt.userChoice;
+                    console.log(`User response to the install prompt: ${choice.outcome}`);
+                    if (choice.outcome === 'accepted' && installButton) {
+                        installButton.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error('Error while prompting install:', err);
+                } finally {
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        // پس از نصب
         window.addEventListener('appinstalled', (evt) => {
             console.log('App was successfully installed');
-            installButton.style.display = 'none';
+            if (installButton) installButton.style.display = 'none';
             deferredPrompt = null;
         });
+
+        // اگر از قبل نصب شده یا حالت standalone است دکمه را مخفی کن
+        function hideInstallIfStandalone() {
+            try {
+                if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                    if (installButton) installButton.style.display = 'none';
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
 
         // رویدادها
         document.getElementById('calculateBtn').addEventListener('click', calculateAllDimensions);
@@ -658,52 +708,20 @@
 
         // بارگذاری اولیه فرمول‌ها
         loadFormulasToInputs();
+        hideInstallIfStandalone();
 
-// ثبت Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/PackSize/sw.js')
-      .then(function(registration) {
-        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        
-        // بررسی شرایط نصب PWA
-        checkPWAInstallability();
-      })
-      .catch(function(error) {
-        console.log('ServiceWorker registration failed: ', error);
-      });
-  });
-}
-
-// تابع جدید برای بررسی قابلیت نصب
-function checkPWAInstallability() {
-  const installButton = document.getElementById('installButton');
-  
-  // بررسی قبل از نصب
-  window.addEventListener('beforeinstallprompt', (e) => {
-    console.log('beforeinstallprompt event fired');
-    e.preventDefault();
-    deferredPrompt = e;
-    installButton.style.display = 'flex';
-    console.log('PWA can be installed');
-  });
-
-  // بررسی پس از نصب
-  window.addEventListener('appinstalled', (evt) => {
-    console.log('App was successfully installed');
-    installButton.style.display = 'none';
-    deferredPrompt = null;
-  });
-
-  // اگر قبلاً نصب شده، دکمه را مخفی کن
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    installButton.style.display = 'none';
-    console.log('App is already installed');
-  }
-}
+        // ثبت Service Worker (مسیر نسبی)
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js')
+              .then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              })
+              .catch(function(error) {
+                console.log('ServiceWorker registration failed: ', error);
+              });
+          });
+        }
     </script>
 </body>
 </html>
-
-
-
