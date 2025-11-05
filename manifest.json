@@ -12,25 +12,25 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "/PackSize/icons/icon-192x192.png",
+      "src": "https://github.com/pohapada/PackSize/blob/main/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/PackSize/icons/icon-192x192.png",
+      "src": "https://github.com/pohapada/PackSize/blob/main/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/PackSize/icons/icon-512x512.png",
+      "src": "https://github.com/pohapada/PackSize/blob/main/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/PackSize/icons/icon-512x512.png",
+      "src": "https://github.com/pohapada/PackSize/blob/main/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
