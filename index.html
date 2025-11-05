@@ -659,7 +659,8 @@
         // بارگذاری اولیه فرمول‌ها
         loadFormulasToInputs();
 
-      if ('serviceWorker' in navigator) {
+// ثبت Service Worker
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/PackSize/sw.js')
       .then(function(registration) {
@@ -673,8 +674,36 @@
       });
   });
 }
+
+// تابع جدید برای بررسی قابلیت نصب
+function checkPWAInstallability() {
+  const installButton = document.getElementById('installButton');
+  
+  // بررسی قبل از نصب
+  window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('beforeinstallprompt event fired');
+    e.preventDefault();
+    deferredPrompt = e;
+    installButton.style.display = 'flex';
+    console.log('PWA can be installed');
+  });
+
+  // بررسی پس از نصب
+  window.addEventListener('appinstalled', (evt) => {
+    console.log('App was successfully installed');
+    installButton.style.display = 'none';
+    deferredPrompt = null;
+  });
+
+  // اگر قبلاً نصب شده، دکمه را مخفی کن
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    installButton.style.display = 'none';
+    console.log('App is already installed');
+  }
+}
     </script>
 </body>
 </html>
+
 
 
