@@ -7,8 +7,8 @@
     <meta name="description" content="برنامه محاسبه ابعاد کارتن - قابل نصب">
     <title>محاسبه ابعاد کارتن</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -91,6 +91,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            display: none;
         }
         
         .install-btn:hover {
@@ -327,7 +328,7 @@
                     </svg>
                 </button>
             </div>
-            <div class="logo">ک</div>
+            <div class="logo">📦</div>
             <h1>محاسبه ابعاد کارتن</h1>
             <p class="description">ابعاد مختلف کارتن را بر اساس طول، عرض و ارتفاع محاسبه کنید</p>
         </header>
@@ -573,28 +574,45 @@
         let deferredPrompt;
         const installButton = document.getElementById('installButton');
 
+        // ابتدا دکمه را مخفی کنید
+        installButton.style.display = 'none';
+
         window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt event fired');
             // جلوگیری از نمایش پیش‌فرض اعلان نصب
             e.preventDefault();
             // ذخیره event برای استفاده بعدی
             deferredPrompt = e;
             // نمایش دکمه نصب
             installButton.style.display = 'flex';
+            
+            // نمایش لاگ برای دیباگ
+            console.log('Install button shown');
         });
 
         installButton.addEventListener('click', async () => {
+            console.log('Install button clicked');
             if (deferredPrompt) {
                 // نمایش اعلان نصب
                 deferredPrompt.prompt();
                 // صبر برای انتخاب کاربر
                 const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
                 if (outcome === 'accepted') {
                     console.log('کاربر برنامه را نصب کرد');
                     installButton.style.display = 'none';
                 }
                 // پاک کردن event
                 deferredPrompt = null;
+            } else {
+                console.log('No deferred prompt available');
             }
+        });
+
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('App was successfully installed');
+            installButton.style.display = 'none';
+            deferredPrompt = null;
         });
 
         // رویدادها
@@ -640,6 +658,19 @@
 
         // بارگذاری اولیه فرمول‌ها
         loadFormulasToInputs();
+
+        // ثبت Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
