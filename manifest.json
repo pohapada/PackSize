@@ -1,23 +1,24 @@
 {
   "name": "محاسبه ابعاد کارتن",
   "short_name": "کارتن محاسبه",
-  "description": "برنامه محاسبه ابعاد کارتن",
-  "start_url": "/PackSize/",
+  "description": "برنامه محاسبه ابعاد و حجم کارتن برای بسته‌بندی محصولات",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#4a6fa5",
   "theme_color": "#4a6fa5",
-  "orientation": "any",
+  "orientation": "portrait",
   "lang": "fa",
   "dir": "rtl",
   "icons": [
     {
-      "src": "/PackSize/icons/icon-192x192.png",
+      "src": "icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/PackSize/icons/icon-512x512.png",
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
